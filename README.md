@@ -18,9 +18,25 @@ clickhouse 相关笔记以及经验
 问题：创建分布式表时由于字段命名错误等想通过删除表后重建新表，在删除旧表后，如果立即新建新表提示ZK中相关路径已经存在无法新建
 
 临时方法：等待一定时间等clickhouse将zk中表相关元数据等删除后在创建，等待时间未知
+
 尝试过：手动将zk中数据删除，结果导致clickhouse异常
 ~~~dbmysql
 DROP TABLE table_name ON cluster cluster_name
+~~~
+
+### 5. 删除分区
+查找分区
+~~~dbmysql
+SELECT distinct(partition) 
+FROM system.parts 
+WHERE database='target_database' and table = 'target_table';
+
+ALTER TABLE 'target_table' ON CLUSTER 'cluster_name' DROP PARTITION 'partition_name'
+~~~
+
+### 6. 查看所有集群信息
+~~~dbmysql
+SELECT * FROM system.clusters FORMAT Vertical;
 ~~~
 
 
