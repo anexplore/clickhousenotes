@@ -19,7 +19,9 @@ clickhouse 相关笔记以及经验
 
 ~~临时方法：等待一定时间等clickhouse将zk中表相关元数据等删除后在创建，等待时间未知~~
 ~~尝试过：手动将zk中数据删除，结果导致clickhouse异常~~
+
 解决方法：
+
 1、建表时指定使用不同的zk路径 
 
 2、drop table no delay | sync
@@ -47,5 +49,21 @@ ALTER TABLE 'target_table' ON CLUSTER 'cluster_name' DROP PARTITION 'partition_n
 SELECT * FROM system.clusters FORMAT Vertical;
 ~~~
 
+### 7. 修改order by
+已存在如果要修改order by则无法添加已存在字段 必须是在alter中add column的新列；
 
+给大表修改order by，可以先将数据导出到本地，然后删表、重新创建表，在把数据导入到表中；
 
+方法一 导入导出：
+~~~shell
+# export 默认格式为 TabSeparated；可以通过FORMAT 指定
+clickhouse-client --port port -d database_name -q "select * from table_name " > xxx
+
+# import
+clickhouse-client --port port -d database_name -q "insert into table_name FORMAT TabSeparated" < xxx
+~~~
+
+方法二 insert select 【未尝试 估计server压力大 不适合大表】：
+~~~shell
+insert into table_name select * from table_name2
+~~~
